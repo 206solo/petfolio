@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import AddPet from './AddPet'
+import PetProfile from './PetProfile'
 
 export default function Dashboard({ session }) {
   const [pets, setPets] = useState([])
   const [showAddPet, setShowAddPet] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [selectedPet, setSelectedPet] = useState(null)
 
   const fetchPets = async () => {
     const { data } = await supabase
@@ -20,6 +22,11 @@ export default function Dashboard({ session }) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+  }
+
+  // If a pet is selected, show its profile instead of the dashboard
+  if (selectedPet) {
+    return <PetProfile pet={selectedPet} session={session} onBack={() => setSelectedPet(null)} />
   }
 
   return (
@@ -45,12 +52,17 @@ export default function Dashboard({ session }) {
         ) : (
           <div className="space-y-4">
             {pets.map(pet => (
-              <div key={pet.id} className="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-4">
+              <div
+                key={pet.id}
+                onClick={() => setSelectedPet(pet)}
+                className="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition"
+              >
                 <div className="text-4xl">{pet.species === 'dog' ? '🐶' : '🐱'}</div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-800">{pet.name}</h2>
                   <p className="text-gray-400 text-sm">{pet.breed || 'Breed not specified'}</p>
                 </div>
+                <div className="ml-auto text-gray-300">→</div>
               </div>
             ))}
           </div>
